@@ -182,18 +182,7 @@
     }
 
     var _include = function (id, value) {
-        if (document.getElementById(id)) {
-            try {
-                var tmp = compile(id, value);
-                if (tmp instanceof String) {
-                    return tmp;
-                }
-                return '[Error Template ' + id + ']';
-            } catch (e) {
-                throw e;
-            }
-        } else
-            throw Error('No Template ' + id);
+        return new Template(id).render(value);
     }
 
     /**
@@ -424,8 +413,6 @@
         config.source = tpl.innerHTML;
         if (config.code) {
             // 代码已经编译
-            // console.log('code ['+id+'] already compiled');
-            // console.log(config.code);
         } else if (config.cache) {
             config.code = getDOMcache(tplId, config);
         } else {
@@ -436,10 +423,10 @@
 
     /* -----------------  外部函数 public ---------------------------*/
 
-    var Template = function (name,config) {
+    var Template = function (name, config) {
         var conf = default_config;
         if (typeof name === 'string') {
-            conf.id=name;
+            conf.id = name;
             // 适配对象
             conf = _objectCopy(conf, config);
         } else {
