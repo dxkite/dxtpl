@@ -36,9 +36,8 @@ window.addEventListener('load', function () {
     var test2= dxtpl.compile('test_for_2');
     document.getElementById("test2").innerHTML = test2.render();
     console.timeEnd('render');
-
     console.time('render');
-    var test3= new dxtpl.Template({id:'test_for_2',strict:false});
+    var test3= new Template({id:'test_for_2',strict:false});
     document.getElementById("test3").innerHTML = test3.render({values: ['hello', 'world'] });
     console.timeEnd('render');
 });

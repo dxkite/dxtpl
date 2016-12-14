@@ -5,7 +5,7 @@
     var default_config = {
         cache: true, // 是否开启缓存
         tagstart: '{',
-        tagend:'}', //控制标签
+        tagend: '}', //控制标签
         compress: true,
         strict: true,
     };
@@ -184,7 +184,7 @@
     var _include = function (id, value) {
         if (document.getElementById(id)) {
             try {
-                var tmp = new template(id, value);
+                var tmp = compile(id, value);
                 if (tmp instanceof String) {
                     return tmp;
                 }
@@ -294,7 +294,7 @@
      * @returns
      */
     function linkValue(source, value, strict) {
-        var use_strict = strict === undefined ?  true : strict ;
+        var use_strict = strict === undefined ? true : strict;
         var ext = [];
         ext.push('var $_unit=this,' + ENGINE[0]);
         for (var index in value) {
@@ -311,7 +311,37 @@
     }
 
 
+    function renderTpl(selector, glovalue) {
+        var nodes = document.querySelectorAll(selector);
+        // console.log(nodes);
+        _arrayEach(nodes, function (node, index) {
+            var source = node.innerHTML;
+            var value;
+            var config = default_config;
 
+            if (node.dataset.init) {
+                try {
+                    var json = new Function('return ' + node.dataset.init + ';');
+                    value = json();
+                } catch (e) {
+                    reportError(selector + '[' + index + ']', null, 0, new Error('Unsupport json'));
+                }
+            }
+            if (node.dataset.config) {
+                try {
+                    var json = new Function('return ' + node.dataset.config + ';');
+                    var conf = json();
+                    config = _objectCopy(config, conf);
+                } catch (e) {
+                    reportError(selector + '[' + index + ']', null, 0, new Error('Unsupport json'));
+                }
+            }
+
+            value = _objectCopy(value, glovalue);
+            var code = compileTemplate(source, config);
+            node.innerHTML = render(selector, source, code, value, config.strict);
+        });
+    };
 
     /**
      * 渲染模板代码
@@ -322,9 +352,9 @@
      * @param {any} value
      * @returns
      */
-    function render(name, source, compiled_code, value,strict) {
+    function render(name, source, compiled_code, value, strict) {
         // console.time('render ' + name);
-        var runcode = linkValue(compiled_code, value,strict);
+        var runcode = linkValue(compiled_code, value, strict);
         // console.log(runcode);
         var caller = {
             _each: _each,
@@ -406,13 +436,20 @@
 
     /* -----------------  外部函数 public ---------------------------*/
 
-    var Template = function (config) {
-        // 适配对象
-        var conf = _objectCopy(default_config, config);
+    var Template = function (name,config) {
+        var conf = default_config;
+        if (typeof name === 'string') {
+            conf.id=name;
+            // 适配对象
+            conf = _objectCopy(conf, config);
+        } else {
+            // 适配对象
+            conf = _objectCopy(conf, name);
+            this.source = conf.source;
+            this.code = conf.code;
+            this.config(conf);
+        }
 
-        this.source = conf.source;
-        this.code = conf.code;
-        this.config(conf);
         // 设置ID自动编译
         if (conf.id) {
             var val = compile(conf.id, conf);
@@ -443,57 +480,15 @@
 
     Template.prototype.render = function (value) {
         if (this.source && this.code) {
-            return render(this.id, this.source, this.code, value,this.strict);
+            return render(this.id, this.source, this.code, value, this.strict);
         } else {
             console.error('Uncompile Template');
         }
     }
 
 
-    Template.template= function (selector,glovalue){
-        var nodes = document.querySelectorAll(selector);
-        var _self = this;
-        // console.log(nodes);
-        _arrayEach(nodes, function (node, index) {
-            var source = node.innerHTML;
-            var value;
-            if (node.dataset.tplInit) {
-                try {
-                    var json = new Function('return ' + node.dataset.tplInit + ';');
-                    value = json();
-                } catch (e) {
-                    reportError(selector + '[' + index + ']', null, 0, new Error('Unsupport json'));
-                }
-            }
-            
-            value = _objectCopy(value, glo_value);
-            var code;
-            if (!_self.template[selector]) {
-                code = compileTemplate(source, _self);
-                _self.template[selector] = code;
-            } else {
-                code = _self.template[selector];
-            }
 
-            console.log(code);
-            node.innerHTML = render(selector, source, code, value);
-        });
-    }
-
-    /*
-
-
-        Template.prototype.compile = function (content) {
-            return {
-                display: function (value) {
-                    return render(null, content, compileTemplate(content, parsers), value);
-                }
-            }
-        }
-
-        dxtpl.template = template;
-        dxtpl.selftpl = selftpl;
-        */
     window.dxtpl = new Template();
-    window.dxtpl.Template = Template;
+    window.Template = Template;
+    window.renderTpl = renderTpl;
 })(window);

@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <title>Demo DxUI</title>
+    <script src="../build/dxtpl.js"></script>
+    <script id="DXkite" type="application/DxTPL">
+     <h1>Template of Dxkite </h1>
+    { name }
+    </script>
+    <script id="test_print" type="application/DxTPL">
+    { include "DXkite" }
+    { if name == 'DXkite'}
+    <h1>{name} {hello}</h1>
+    {else if name =='aoeiuv'}
+    <h1>Aoeiuv {hello}</h1>
+    {else}
+    <h1>{name} {hello}</h1>
+    {/if}
+    </script>
+</head>
+
+<body>
+    <div id="test1"> </div>
+    <div id="test2"> </div>
+    <div id="test3"> </div>
+    <div id="test4"> </div>
+</body>
+<script>    
+
+window.addEventListener('load', function () {
+    console.time('render');
+    var test1= new Template('test_print');
+    document.getElementById("test1").innerHTML = test1.render({ hello: 'HelloWorld', name: 'TTHHR', values: ['hello', 'world'] });
+    document.getElementById("test2").innerHTML = test1.render({ hello: 'HelloWorld???', name: 'Dxkite', values: ['hello', 'world'] });
+    console.timeEnd('render');
+    console.time('render');
+    var test1= new Template('test_print');
+    test1.config({cache:false});
+    document.getElementById("test3").innerHTML = test1.render({ hello: 'HelloWorld', name: 'TTHHR', values: ['hello', 'world'] });
+    document.getElementById("test4").innerHTML = test1.render({ hello: 'HelloWorld???', name: 'Dxkite', values: ['hello', 'world'] });
+    console.timeEnd('render');
+});
+
+</script>
+
+</html>
