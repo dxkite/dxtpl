@@ -9,6 +9,16 @@ module.exports = function (grunt) {
                 src: 'src/<%= pkg.name %>.js',
                 dest: 'build/<%= pkg.name %>.min.js'
             },
+            beautify: {
+                options: {
+                    banner: '/*! <%= pkg.name %> by <%= pkg.author %> <%= grunt.template.today("yyyy-mm-dd") %> */\n',
+                    beautify: true,
+                    report: 'none',
+                    mangle: false,
+                },
+                src: 'src/<%= pkg.name %>.js',
+                dest: 'build/<%= pkg.name %>.js'
+            }
         },
     });
 

@@ -434,16 +434,14 @@
     var Template = function (name, config) {
         var conf = default_config;
         if (typeof name === 'string') {
-            conf.id = name;
             // 适配对象
             conf = _objectCopy(conf, config);
+            conf.id = name;
         } else {
             // 适配对象
             conf = _objectCopy(conf, name);
-            this.source = conf.source;
-            this.code = conf.code;
-            this.config(conf);
         }
+        this.config(conf);
     }
 
 
@@ -473,7 +471,7 @@
     Template.prototype.render = function (value) {
         // 未编译
         if (!(this.source && this.code)) {
-            var val = compile(conf.id, conf);
+            var val = compile(this.id,this);
             this.config(val);
         }
         return render(this.id, this.source, this.code, value, this.strict);
