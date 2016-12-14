@@ -1,0 +1,23 @@
+<html>  
+    <head>
+        <title>Test dxui</title>
+        <script src="../build/dxtpl.js"></script>
+    </head>
+<body>
+    <h2>Test Of List</h2>
+    <div id="test1" data-tpl-init="{lists:['moveable','template','dom','ui/index']}">
+        <ol>
+            {each lists as name}
+            <li><a href="{name}.html">test of {name}</a> </li>
+            {/each}
+        </ol>
+    </div>
+</body>
+<script>    
+
+window.addEventListener('load', function () {
+   dxtpl.render('#test1');
+});
+
+</script>
+</html>

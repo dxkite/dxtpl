@@ -1,4 +1,5 @@
-;!(function (window) {
+;
+!(function (window) {
 
     //  缓存查找节点可能会耗时较多 
     var default_config = {
@@ -11,7 +12,7 @@
     // 关键字
     var KEYWORD = 'if,else,each,include,while,for';
     var KEYWORD_PREG = '^\\s*((?:\/)?(?:' + KEYWORD.split(',').join('|') + '))(.*)';
-    
+
     // @artTemplate:https://github.com/aui/artTemplate
     var ENGINE = ''.trim ? ["$_tpl_=''", "$_tpl_+=", ";", "$_tpl_"] : ["$_tpl_=[]", "$_tpl_.push(", ");", "$_tpl_.join('')"];
 
@@ -23,6 +24,10 @@
         "&": "&#38;"
     };
 
+
+    /*  --------------------  静态内部函数 protected ------------------------*/
+
+
     /**
      * 测试模板语句的可行性
      * 
@@ -30,7 +35,7 @@
      * @param {any} code
      * @returns
      */
-    function statment_test(test, code) {
+    function statmentTest(test, code) {
         try {
             new Function(test);
         } catch (e) {
@@ -40,23 +45,6 @@
     }
 
 
-    var Template = function (config) {
-        this.config(config);
-    }
-
-
-    Template.prototype.config = function (config) {
-        this.cache = (typeof config.cache !== undefined) ? config.cache : defaults.cache;
-        this.compress = (typeof config.compress !== undefined) ? config.compress : defaults.compress;
-        if (config.tags && config.tags.length === 2) {
-            this.tagstart = config.tags[0];
-            this.tagend = config.tags[1]
-        }
-        this.use_strict = config.use_strict || true;
-    }
-
-
-    
     /**
      * 处理HTML部分
      * 
@@ -86,6 +74,13 @@
         return out;
     }
 
+
+    /**
+     * 处理代码
+     * 
+     * @param {any} code
+     * @returns
+     */
     function parserCode(code) {
         var match;
         // console.log(new RegExp(KEYWORD_PREG));
@@ -103,7 +98,7 @@
                     param = param.join(',');
                     return ENGINE[1] + '$_unit._include(' + param + ')' + ENGINE[2];
                 case 'if':
-                    return statment_test('if(' + param + '){}', 'if (' + param + ') {');
+                    return statmentTest('if(' + param + '){}', 'if (' + param + ') {');
                 case 'else':
                     // console.log(param,param.match(/^\s*if\s+(.*)/));
                     if (match = param.match(/^\s*if\s+(.*)/)) {
@@ -115,9 +110,9 @@
                 case '/for':
                     return '}';
                 case 'while':
-                    return statment_test('while(' + param + '){}', 'while (' + param + ') {');
+                    return statmentTest('while(' + param + '){}', 'while (' + param + ') {');
                 case 'for':
-                    return statment_test('for(' + param + '){}', 'for (' + param + ') {');
+                    return statmentTest('for(' + param + '){}', 'for (' + param + ') {');
                 case 'each':
                     var match = param.match(/(\w+)\s+(?:(?:as(?:\s+(\w+)))?(?:(?:\s+=>)?\s+(\w+))?)?/);
                     if (match) {
@@ -148,6 +143,7 @@
             return ENGINE[1] + '$_unit._escape(' + code + ')' + ENGINE[2];
         }
     }
+
 
 
     var _echo = function (value) {
@@ -183,6 +179,7 @@
         }
         return object;
     }
+
     var _include = function (id, value) {
         if (document.getElementById(id)) {
             try {
@@ -198,7 +195,12 @@
             throw Error('No Template ' + id);
     }
 
-    // 字符串转义
+    /**
+     * 生成可显示字符串
+     * 
+     * @param {any} code
+     * @returns
+     */
     function _string(code) {
         return "'" + code
             // 单引号与反斜杠转义
@@ -207,11 +209,28 @@
             .replace(/\n/g, '\\n') + "'";
     }
 
+
+    /**
+     * 判断是否是数组
+     * 
+     * @param {any} obj
+     * @returns
+     */
     function is_array(obj) {
         return Object.prototype.toString.call(obj) === '[object Array]';
     }
 
-    var reportError = function (name, content, line, e) {
+
+
+    /**
+     * 提示代码错误
+     * 
+     * @param {any} name
+     * @param {any} content
+     * @param {any} line
+     * @param {any} e
+     */
+    function reportError(name, content, line, e) {
         var name = name || 'anonymous';
         var report = 'DxTPL Error:';
         console.group(report);
@@ -239,7 +258,14 @@
 
 
 
-    function compileTemplate(text,compress) {
+    /**
+     * 编译模板
+     * 
+     * @param {any} text
+     * @param {any} compress
+     * @returns
+     */
+    function compileTemplate(text, compress) {
         var tpl = '';
         // console.log('code',text);
         text = text.replace(/^\n/, '');
@@ -248,7 +274,7 @@
             // console.log('split',value);
             var split = value.split(tagend);
             if (split.length === 1) {
-                tpl += parserHTML(split[0],compress);
+                tpl += parserHTML(split[0], compress);
             } else {
                 tpl += parserCode(split[0]);
                 tpl += parserHTML(split[1]);
@@ -256,9 +282,17 @@
         });
         return tpl;
     }
+    
 
-
-    function linkValue(source, value,use_strict) {
+    /**
+     * 给模板压入变量
+     * 
+     * @param {any} source
+     * @param {any} value
+     * @param {any} use_strict
+     * @returns
+     */
+    function linkValue(source, value, use_strict) {
         var strict = use_strict || true;
         var ext = [];
         ext.push('var $_unit=this,' + ENGINE[0]);
@@ -275,7 +309,19 @@
         return link_str;
     }
 
-    function render (name, source, compiled_code, value) {
+
+
+
+    /**
+     * 渲染模板代码
+     * 
+     * @param {any} name
+     * @param {any} source
+     * @param {any} compiled_code
+     * @param {any} value
+     * @returns
+     */
+    function render(name, source, compiled_code, value) {
         // console.time('render ' + name);
         var runcode = linkValue(compiled_code, value);
         // console.log(runcode);
@@ -286,6 +332,7 @@
             _include: _include,
             value: value
         };
+
         var html;
         try {
             var render = new Function(runcode);
@@ -313,6 +360,66 @@
         // console.timeEnd('render ' + name);
         return html;
     }
+
+    
+    /* -----------------  外部函数 public ---------------------------*/
+
+    var Template = function (config) {
+        // 适配对象
+        var conf=_objectCopy(default_config,config);
+        this.config(conf);
+        // 模板对象
+        this.template={};
+        
+    }
+
+
+    Template.prototype.config = function (config) {
+        this.cache = (typeof config.cache !== undefined) ? config.cache : defaults.cache;
+        this.compress = (typeof config.compress !== undefined) ? config.compress : defaults.compress;
+        if (config.tags && config.tags.length === 2) {
+            this.tagstart = config.tags[0];
+            this.tagend = config.tags[1]
+        }
+        this.use_strict = config.use_strict || true;
+        this.id=config.id;
+        this.value=config.value;
+    }
+
+
+    Template.prototype.assign = function (name, value) {
+        this.value[name] = _objectCopy(this.value[name], value);
+    }
+
+    Template.prototype.value = function (value) {
+        this.value = _objectCopy(this.value, value);
+    }
+
+
+    Template.prototype.render=function(selector,glo_value){
+        var nodes = document.querySelectorAll(selector);
+        // console.log(nodes);
+        _arrayEach(nodes, function (node, index) {
+            var source = node.innerHTML;
+            var value;
+            if (node.dataset.tplInit) {
+                try {
+                    var json = new Function('return ' + node.dataset.tplInit + ';');
+                    value = json();
+                } catch (e) {
+                    reportError(selector + '[' + index + ']', null, 0, new Error('Unsupport json'));
+                }
+            }
+            value = _objectCopy(value, valueset);
+            var code = compileTemplate(source, parsers);
+            node.innerHTML = render(selector, source, code, value);
+        });
+    }
+
+
+
+/*
+
 
     function getDOMcache(name) {
         // console.time('getcache:' + name);
@@ -355,7 +462,7 @@
             node.innerHTML = render(selector, source, code, value);
         });
     }
-    
+
     var template = function (id, value) {
         if (typeof id !== 'string') throw Error('Unsupport Template ID');
         var tpl = document.getElementById(id);
@@ -393,5 +500,6 @@
 
     dxtpl.template = template;
     dxtpl.selftpl = selftpl;
-    window.dxtpl = dxtpl;
+    */
+    window.dxtpl = new Template();
 })(window);

@@ -367,7 +367,7 @@
     var Template = function (config) {
         // 适配对象
         var conf=_objectCopy(default_config,config);
-        this.config(config);
+        this.config(conf);
         // 模板对象
         this.template={};
         
@@ -485,5 +485,5 @@
     dxtpl.template = template;
     dxtpl.selftpl = selftpl;
     */
-    window.dxtpl = new Template(default_config);
+    window.dxtpl = new Template();
 })(window);
