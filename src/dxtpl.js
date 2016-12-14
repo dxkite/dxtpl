@@ -407,7 +407,7 @@
     /* ----  编译DOM对象 ----*/
     function compile(id, config) {
         var tplId = id || config.id;
-        var anonymous=false;
+        var anonymous = false;
         if (typeof tplId !== 'string') throw Error('Unsupport Template ID');
         var tpl = document.getElementById(tplId);
         if (tpl) {
@@ -417,7 +417,7 @@
             // 无法获取，将ID作为源码解析
             config.source = tplId;
             config.id = 'anonymous';
-            anonymous=true;
+            anonymous = true;
         }
         if (config.code) {
             // 代码已经编译
@@ -443,12 +443,6 @@
             this.source = conf.source;
             this.code = conf.code;
             this.config(conf);
-        }
-
-        // 设置ID自动编译
-        if (conf.id) {
-            var val = compile(conf.id, conf);
-            this.config(val);
         }
     }
 
@@ -477,11 +471,12 @@
     }
 
     Template.prototype.render = function (value) {
-        if (this.source && this.code) {
-            return render(this.id, this.source, this.code, value, this.strict);
-        } else {
-            console.error('Uncompile Template');
+        // 未编译
+        if (!(this.source && this.code)) {
+            var val = compile(conf.id, conf);
+            this.config(val);
         }
+        return render(this.id, this.source, this.code, value, this.strict);
     }
 
     window.dxtpl = new Template();
