@@ -432,6 +432,7 @@
     /* -----------------  外部函数 public ---------------------------*/
 
     var Template = function (name, config) {
+        this.version='1.0.43';
         var conf = default_config;
         if (typeof name === 'string') {
             // 适配对象
