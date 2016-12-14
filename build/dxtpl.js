@@ -449,15 +449,18 @@
         for (var index in config) {
             this[index] = config[index];
         }
+        return this;
     }
 
 
     Template.prototype.assign = function (name, value) {
         this.value[name] = _objectCopy(this.value[name], value);
+        return this;
     }
 
     Template.prototype.value = function (value) {
         this.value = _objectCopy(this.value, value);
+        return this;
     }
 
     Template.prototype.compile = function (id) {
