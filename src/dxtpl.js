@@ -4,9 +4,10 @@
     //  缓存查找节点可能会耗时较多 
     var default_config = {
         cache: true, // 是否开启缓存
-        tags: ['{', '}'], //控制标签
+        tagstart: '{',
+        tagend:'}', //控制标签
         compress: true,
-        use_strict: true,
+        strict: true,
     };
 
     // 关键字
@@ -289,18 +290,18 @@
      * 
      * @param {any} source
      * @param {any} value
-     * @param {any} use_strict
+     * @param {any} strict
      * @returns
      */
-    function linkValue(source, value, use_strict) {
-        var strict = use_strict || true;
+    function linkValue(source, value, strict) {
+        var use_strict = strict === undefined ?  true : strict ;
         var ext = [];
         ext.push('var $_unit=this,' + ENGINE[0]);
         for (var index in value) {
             ext.push(index + '=this.value.' + index);
         }
         var link_str = '';
-        if (strict) {
+        if (use_strict) {
             link_str = '"use strict";';
         }
         link_str += ext.join(',');
@@ -321,9 +322,9 @@
      * @param {any} value
      * @returns
      */
-    function render(name, source, compiled_code, value) {
+    function render(name, source, compiled_code, value,strict) {
         // console.time('render ' + name);
-        var runcode = linkValue(compiled_code, value);
+        var runcode = linkValue(compiled_code, value,strict);
         // console.log(runcode);
         var caller = {
             _each: _each,
@@ -361,29 +362,69 @@
         return html;
     }
 
+    function getDOMcache(name, config) {
+        // console.time('getcache:' + name);
+        var cache_parent = document.getElementById('template_caches');
+        if (!cache_parent) {
+            cache_parent = document.createElement('div');
+            cache_parent.id = 'template_caches';
+            cache_parent.style.display = 'none';
+            document.body.appendChild(cache_parent);
+        }
+        var cache_name = 'template_cache_' + name;
+
+        var tpl_cache = document.getElementById('template_cache_' + name);
+        if (!tpl_cache) {
+            tpl_cache = document.createElement('div');
+            tpl_cache.id = cache_name;
+            tpl_cache.innerText = compileTemplate(document.getElementById(name).innerHTML, config || default_config);
+            cache_parent.appendChild(tpl_cache);
+        }
+        // console.timeEnd('getcache:' + name);
+        return tpl_cache.innerText;
+    }
+
+
+    /* ----  编译DOM对象 ----*/
+    function compile(id, config) {
+        var tplId = id || config.id;
+        if (typeof tplId !== 'string') throw Error('Unsupport Template ID');
+        var tpl = document.getElementById(tplId);
+        // 获取源码
+        config.source = tpl.innerHTML;
+        if (config.code) {
+            // 代码已经编译
+            // console.log('code ['+id+'] already compiled');
+            // console.log(config.code);
+        } else if (config.cache) {
+            config.code = getDOMcache(tplId, config);
+        } else {
+            config.code = compileTemplate(source, config);
+        }
+        return config;
+    }
 
     /* -----------------  外部函数 public ---------------------------*/
 
     var Template = function (config) {
         // 适配对象
         var conf = _objectCopy(default_config, config);
-        this.config(conf);
-        // 模板对象
-        this.template = {};
 
+        this.source = conf.source;
+        this.code = conf.code;
+        this.config(conf);
+        // 设置ID自动编译
+        if (conf.id) {
+            var val = compile(conf.id, conf);
+            this.config(val);
+        }
     }
 
 
     Template.prototype.config = function (config) {
-        this.cache = (typeof config.cache !== undefined) ? config.cache : defaults.cache;
-        this.compress = (typeof config.compress !== undefined) ? config.compress : defaults.compress;
-        if (config.tags && config.tags.length === 2) {
-            this.tagstart = config.tags[0];
-            this.tagend = config.tags[1]
+        for (var index in config) {
+            this[index] = config[index];
         }
-        this.use_strict = config.use_strict || true;
-        this.id = config.id;
-        this.value = config.value;
     }
 
 
@@ -395,8 +436,21 @@
         this.value = _objectCopy(this.value, value);
     }
 
+    Template.prototype.compile = function (id) {
+        var config = _objectCopy(this, compile(id, this));
+        return new Template(config);
+    }
 
-    Template.prototype.render = function (selector, glo_value) {
+    Template.prototype.render = function (value) {
+        if (this.source && this.code) {
+            return render(this.id, this.source, this.code, value,this.strict);
+        } else {
+            console.error('Uncompile Template');
+        }
+    }
+
+
+    Template.template= function (selector,glovalue){
         var nodes = document.querySelectorAll(selector);
         var _self = this;
         // console.log(nodes);
@@ -411,6 +465,7 @@
                     reportError(selector + '[' + index + ']', null, 0, new Error('Unsupport json'));
                 }
             }
+            
             value = _objectCopy(value, glo_value);
             var code;
             if (!_self.template[selector]) {
@@ -425,78 +480,7 @@
         });
     }
 
-
-
     /*
-
-
-        function getDOMcache(name) {
-            // console.time('getcache:' + name);
-            var cache_parent = document.getElementById('template_caches');
-            if (!cache_parent) {
-                cache_parent = document.createElement('div');
-                cache_parent.id = 'template_caches';
-                cache_parent.style.display = 'none';
-                document.body.appendChild(cache_parent);
-            }
-            var cache_name = 'template_cache_' + name;
-
-            var tpl_cache = document.getElementById('template_cache_' + name);
-            if (!tpl_cache) {
-                tpl_cache = document.createElement('div');
-                tpl_cache.id = cache_name;
-                tpl_cache.innerText = compileTemplate(document.getElementById(name).innerHTML, parsers);
-                cache_parent.appendChild(tpl_cache);
-            }
-            // console.timeEnd('getcache:' + name);
-            return tpl_cache.innerText;
-        }
-
-        var selftpl = function (selector, valueset) {
-            var nodes = document.querySelectorAll(selector);
-            // console.log(nodes);
-            _arrayEach(nodes, function (node, index) {
-                var source = node.innerHTML;
-                var value;
-                if (node.dataset.tplInit) {
-                    try {
-                        var json = new Function('return ' + node.dataset.tplInit + ';');
-                        value = json();
-                    } catch (e) {
-                        reportError(selector + '[' + index + ']', null, 0, new Error('Unsupport json'));
-                    }
-                }
-                value = _objectCopy(value, valueset);
-                var code = compileTemplate(source, parsers);
-                node.innerHTML = render(selector, source, code, value);
-            });
-        }
-
-        var template = function (id, value) {
-            if (typeof id !== 'string') throw Error('Unsupport Template ID');
-            var tpl = document.getElementById(id);
-            var code;
-            var source = tpl.innerHTML;
-            // console.log(source);
-            if (cache) {
-                code = getDOMcache(id);
-            } else {
-                code = compileTemplate(source, parsers);
-                // console.log('compiled:',code);
-            }
-
-            if (value) {
-                return render(id, source, code, value);
-            } else {
-                return {
-
-                    config: dxtpl.config,
-                    display: function (value) {
-                        return render(id, source, code, value);
-                    }
-                }
-            }
-        }
 
 
         Template.prototype.compile = function (content) {
@@ -511,4 +495,5 @@
         dxtpl.selftpl = selftpl;
         */
     window.dxtpl = new Template();
+    window.dxtpl.Template = Template;
 })(window);

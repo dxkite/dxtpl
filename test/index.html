@@ -5,10 +5,10 @@
     </head>
 <body>
     <h2>Test Of List</h2>
-    <div id="test1" data-tpl-init="{lists:['moveable','template','dom','ui/index']}">
+    <div id="test1" data-tpl-init="{lists:['for']}">
         <ol>
             {each lists as name}
-            <li><a href="{name}.html">test of {name}</a> </li>
+            <li><a href="test_{name}.html">test of {name}</a> </li>
             {/each}
         </ol>
     </div>
@@ -16,7 +16,7 @@
 <script>    
 
 window.addEventListener('load', function () {
-   dxtpl.render('#test1');
+   dxtpl.template('#test1');
 });
 
 </script>

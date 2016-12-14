@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <title>Demo DxUI</title>
+        <script src="../build/dxtpl.js"></script>
+    <script id="test_print" type="application/DxTPL">
+    {for var x in values}
+    <div> {x} - {values[x]} </div>
+    {/for}
+    </script>
+    <script id="test_for_2" type="application/DxTPL">
+    {for  i=0 ; i< 1000 ;i++ }
+    <div> 第{i}行 </div>
+    {/for}
+    </script>
+</head>
+
+<body>
+    <div id="test1"> </div>
+    <div id="test2"> </div>
+    <div id="test3"> </div>
+</body>
+<script>    
+
+window.addEventListener('load', function () {
+    console.time('render');
+    var test1= dxtpl.compile('test_print');
+
+    document.getElementById("test1").innerHTML = test1.render({values: ['hello', 'world'] });
+    console.timeEnd('render');
+    console.time('render');
+    var test2= dxtpl.compile('test_for_2');
+    document.getElementById("test2").innerHTML = test2.render();
+    console.timeEnd('render');
+
+    console.time('render');
+    var test3= new dxtpl.Template({id:'test_for_2',strict:false});
+    document.getElementById("test3").innerHTML = test3.render({values: ['hello', 'world'] });
+    console.timeEnd('render');
+});
+
+</script>
+
+</html>
