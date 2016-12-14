@@ -1,0 +1,31 @@
+<html>
+
+<head>
+    <title>Test dxui</title>
+    <script src="../build/dxtpl.js"></script>
+</head>
+
+<body>
+    <div id="test1" data-init="{show:false,show_a:'DXkite',show_b:'TTHHR'}">
+        <ol>
+            {if show}
+            <li> {show_a} </li>
+            {else}
+            <li>{show_b}</li>
+            {if show}
+            <li> {show_a} </li>
+            {else if show_a}
+            <li>{show_a}</li>
+            {/if} {/if}
+        </ol>
+    </div>
+</body>
+<script>    
+
+window.addEventListener('load', function () {
+   renderTpl('#test1');
+});
+
+</script>
+
+</html>
