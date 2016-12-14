@@ -1,0 +1,26 @@
+<html>
+
+<head>
+    <title>Test dxui</title>
+    <script src="../build/dxtpl.js"></script>
+</head>
+
+<body>
+    <h2>Test Of fruit</h2>
+    <div id="test1" data-init="{fruits:['peach','Lemon','Pear','Banana']}"  data-config="{tagstart:'<!--',tagend:'-->'}">
+        <ol>
+            <!-- each fruits as fruit -->
+            <li> <!-- fruit --></li>
+            <!--/each -->
+        </ol>
+    </div>
+</body>
+<script>    
+
+window.addEventListener('load', function () {
+   renderTpl('#test1');
+});
+
+</script>
+
+</html>
