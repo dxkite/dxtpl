@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <title>Demo DxUI</title>
+    <script src="../build/dxtpl.js"></script>
+</head>
+
+<body>
+</body>
+<script>    
+
+window.addEventListener('load', function () {
+    var test_print = '<h1>{hello}</h1>\n{ if true }\n<h1>{!name}</h1>\n{/if}'
+        + '{ each values }\n<h1>{value}</h1>\n{/each}'
+        + '{each values as key => name }\n<h1>{name}</h1>\n{/each}'
+        + '{ each  values as name }\n<h1>{name}</h1>\n{/each}';
+    document.body.innerHTML = new Template(test_print).render({ hello: 'HelloWorld', name: 'DXkite', values: ['hello', 'world'] });
+});
+
+</script>
+
+</html>

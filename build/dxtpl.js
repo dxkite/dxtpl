@@ -407,16 +407,24 @@
     /* ----  编译DOM对象 ----*/
     function compile(id, config) {
         var tplId = id || config.id;
+        var anonymous=false;
         if (typeof tplId !== 'string') throw Error('Unsupport Template ID');
         var tpl = document.getElementById(tplId);
-        // 获取源码
-        config.source = tpl.innerHTML;
+        if (tpl) {
+            // 获取源码
+            config.source = tpl.innerHTML;
+        } else {
+            // 无法获取，将ID作为源码解析
+            config.source = tplId;
+            config.id = 'anonymous';
+            anonymous=true;
+        }
         if (config.code) {
             // 代码已经编译
-        } else if (config.cache) {
+        } else if (config.cache && !anonymous) {
             config.code = getDOMcache(tplId, config);
         } else {
-            config.code = compileTemplate(source, config);
+            config.code = compileTemplate(config.source, config);
         }
         return config;
     }
@@ -475,8 +483,6 @@
             console.error('Uncompile Template');
         }
     }
-
-
 
     window.dxtpl = new Template();
     window.Template = Template;

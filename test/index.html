@@ -1,11 +1,13 @@
-<html>  
-    <head>
-        <title>Test dxui</title>
-        <script src="../build/dxtpl.js"></script>
-    </head>
+<html>
+
+<head>
+    <title>Test dxui</title>
+    <script src="../build/dxtpl.js"></script>
+</head>
+
 <body>
     <h2>Test Of List</h2>
-    <div id="test1" data-init="{lists:['for','include']}">
+    <div id="test1" data-init="{lists:['for','include','temp']}">
         <ol>
             {each lists as name}
             <li><a href="test_{name}.html">test of {name}</a> </li>
@@ -20,4 +22,5 @@ window.addEventListener('load', function () {
 });
 
 </script>
+
 </html>
