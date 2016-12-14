@@ -43,6 +43,7 @@ renderTpl(Id,value);
 |strict| `bool`| `true`  | `Javascript`严格模式，默认开启|
 | compress| `bool` |`true`  | 压缩空白HTML，默认开启|
 
+>**Note**  可以通过Template.config(config) 设置Config
 
 ## 支持语法
 ### Js-if
