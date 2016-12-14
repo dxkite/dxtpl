@@ -262,19 +262,19 @@
      * 编译模板
      * 
      * @param {any} text
-     * @param {any} compress
+     * @param {any} config
      * @returns
      */
-    function compileTemplate(text, compress) {
+    function compileTemplate(text, config) {
         var tpl = '';
         // console.log('code',text);
         text = text.replace(/^\n/, '');
         // console.log(tagstart);
-        _each(text.split(tagstart), function (value) {
+        _each(text.split(config.tagstart), function (value) {
             // console.log('split',value);
-            var split = value.split(tagend);
+            var split = value.split(config.tagend);
             if (split.length === 1) {
-                tpl += parserHTML(split[0], compress);
+                tpl += parserHTML(split[0], config.compress);
             } else {
                 tpl += parserCode(split[0]);
                 tpl += parserHTML(split[1]);
@@ -282,7 +282,7 @@
         });
         return tpl;
     }
-    
+
 
     /**
      * 给模板压入变量
@@ -361,16 +361,16 @@
         return html;
     }
 
-    
+
     /* -----------------  外部函数 public ---------------------------*/
 
     var Template = function (config) {
         // 适配对象
-        var conf=_objectCopy(default_config,config);
+        var conf = _objectCopy(default_config, config);
         this.config(conf);
         // 模板对象
-        this.template={};
-        
+        this.template = {};
+
     }
 
 
@@ -382,8 +382,8 @@
             this.tagend = config.tags[1]
         }
         this.use_strict = config.use_strict || true;
-        this.id=config.id;
-        this.value=config.value;
+        this.id = config.id;
+        this.value = config.value;
     }
 
 
@@ -396,39 +396,9 @@
     }
 
 
-    Template.prototype.render=function(id,value){
-        
-    }
-
-
-
-/*
-
-
-    function getDOMcache(name) {
-        // console.time('getcache:' + name);
-        var cache_parent = document.getElementById('template_caches');
-        if (!cache_parent) {
-            cache_parent = document.createElement('div');
-            cache_parent.id = 'template_caches';
-            cache_parent.style.display = 'none';
-            document.body.appendChild(cache_parent);
-        }
-        var cache_name = 'template_cache_' + name;
-
-        var tpl_cache = document.getElementById('template_cache_' + name);
-        if (!tpl_cache) {
-            tpl_cache = document.createElement('div');
-            tpl_cache.id = cache_name;
-            tpl_cache.innerText = compileTemplate(document.getElementById(name).innerHTML, parsers);
-            cache_parent.appendChild(tpl_cache);
-        }
-        // console.timeEnd('getcache:' + name);
-        return tpl_cache.innerText;
-    }
-
-    var selftpl = function (selector, valueset) {
+    Template.prototype.render = function (selector, glo_value) {
         var nodes = document.querySelectorAll(selector);
+        var _self = this;
         // console.log(nodes);
         _arrayEach(nodes, function (node, index) {
             var source = node.innerHTML;
@@ -441,49 +411,104 @@
                     reportError(selector + '[' + index + ']', null, 0, new Error('Unsupport json'));
                 }
             }
-            value = _objectCopy(value, valueset);
-            var code = compileTemplate(source, parsers);
+            value = _objectCopy(value, glo_value);
+            var code;
+            if (!_self.template[selector]) {
+                code = compileTemplate(source, _self);
+                _self.template[selector] = code;
+            } else {
+                code = _self.template[selector];
+            }
+
+            console.log(code);
             node.innerHTML = render(selector, source, code, value);
         });
     }
 
-    var template = function (id, value) {
-        if (typeof id !== 'string') throw Error('Unsupport Template ID');
-        var tpl = document.getElementById(id);
-        var code;
-        var source = tpl.innerHTML;
-        // console.log(source);
-        if (cache) {
-            code = getDOMcache(id);
-        } else {
-            code = compileTemplate(source, parsers);
-            // console.log('compiled:',code);
+
+
+    /*
+
+
+        function getDOMcache(name) {
+            // console.time('getcache:' + name);
+            var cache_parent = document.getElementById('template_caches');
+            if (!cache_parent) {
+                cache_parent = document.createElement('div');
+                cache_parent.id = 'template_caches';
+                cache_parent.style.display = 'none';
+                document.body.appendChild(cache_parent);
+            }
+            var cache_name = 'template_cache_' + name;
+
+            var tpl_cache = document.getElementById('template_cache_' + name);
+            if (!tpl_cache) {
+                tpl_cache = document.createElement('div');
+                tpl_cache.id = cache_name;
+                tpl_cache.innerText = compileTemplate(document.getElementById(name).innerHTML, parsers);
+                cache_parent.appendChild(tpl_cache);
+            }
+            // console.timeEnd('getcache:' + name);
+            return tpl_cache.innerText;
         }
 
-        if (value) {
-            return render(id, source, code, value);
-        } else {
-            return {
+        var selftpl = function (selector, valueset) {
+            var nodes = document.querySelectorAll(selector);
+            // console.log(nodes);
+            _arrayEach(nodes, function (node, index) {
+                var source = node.innerHTML;
+                var value;
+                if (node.dataset.tplInit) {
+                    try {
+                        var json = new Function('return ' + node.dataset.tplInit + ';');
+                        value = json();
+                    } catch (e) {
+                        reportError(selector + '[' + index + ']', null, 0, new Error('Unsupport json'));
+                    }
+                }
+                value = _objectCopy(value, valueset);
+                var code = compileTemplate(source, parsers);
+                node.innerHTML = render(selector, source, code, value);
+            });
+        }
 
-                config: dxtpl.config,
-                display: function (value) {
-                    return render(id, source, code, value);
+        var template = function (id, value) {
+            if (typeof id !== 'string') throw Error('Unsupport Template ID');
+            var tpl = document.getElementById(id);
+            var code;
+            var source = tpl.innerHTML;
+            // console.log(source);
+            if (cache) {
+                code = getDOMcache(id);
+            } else {
+                code = compileTemplate(source, parsers);
+                // console.log('compiled:',code);
+            }
+
+            if (value) {
+                return render(id, source, code, value);
+            } else {
+                return {
+
+                    config: dxtpl.config,
+                    display: function (value) {
+                        return render(id, source, code, value);
+                    }
                 }
             }
         }
-    }
 
 
-    Template.prototype.compile = function (content) {
-        return {
-            display: function (value) {
-                return render(null, content, compileTemplate(content, parsers), value);
+        Template.prototype.compile = function (content) {
+            return {
+                display: function (value) {
+                    return render(null, content, compileTemplate(content, parsers), value);
+                }
             }
         }
-    }
 
-    dxtpl.template = template;
-    dxtpl.selftpl = selftpl;
-    */
+        dxtpl.template = template;
+        dxtpl.selftpl = selftpl;
+        */
     window.dxtpl = new Template();
 })(window);
