@@ -115,7 +115,7 @@
                 case 'for':
                     return statmentTest('for(' + param + '){}', 'for (' + param + ') {');
                 case 'each':
-                    var match = param.match(/(\w+)\s+(?:(?:as(?:\s+(\w+)))?(?:\s*:\s*(\w+))?)?/);
+                    var match = param.match(/\s*(.+?)\s+(?:(?:as(?:\s+(\w+)))?(?:\s*:\s*(\w+))?)?/);
                     if (match) {
                         var value = match[1];
                         var each_param;
