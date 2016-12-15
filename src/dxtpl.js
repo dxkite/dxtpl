@@ -115,7 +115,7 @@
                 case 'for':
                     return statmentTest('for(' + param + '){}', 'for (' + param + ') {');
                 case 'each':
-                    var match = param.match(/(\w+)\s+(?:(?:as(?:\s+(\w+)))?(?:(?:\s+:)?\s+(\w+))?)?/);
+                    var match = param.match(/(\w+)\s+(?:(?:as(?:\s+(\w+)))?(?:\s*:\s*(\w+))?)?/);
                     if (match) {
                         var value = match[1];
                         var each_param;
@@ -432,7 +432,7 @@
     /* -----------------  外部函数 public ---------------------------*/
 
     var Template = function (name, config) {
-        this.version='1.0.43';
+        this.version = '1.0.43';
         var conf = default_config;
         if (typeof name === 'string') {
             // 适配对象
@@ -472,7 +472,7 @@
     Template.prototype.render = function (value) {
         // 未编译
         if (!(this.source && this.code)) {
-            var val = compile(this.id,this);
+            var val = compile(this.id, this);
             this.config(val);
         }
         return render(this.id, this.source, this.code, value, this.strict);
